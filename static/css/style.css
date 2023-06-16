@@ -1136,8 +1136,24 @@ header.header_part .logo {
     padding: 6px 15px;
     border-radius: 4px;
 }
-
-
+.header_area .inside_data {
+    display: flex;
+    align-items: center;
+     display: -webkit-flex;
+    -webkit-align-items: center;
+    padding: 10px;
+    max-width: 1300px;
+    margin: 0 auto;
+    justify-content: space-between;
+    -webkit-justify-content: space-between;
+}
+.header_area .inside_data select {
+    border: 1px solid #e5e5e5;
+    padding: 10px;
+    border-radius: 5px;
+    background: linear-gradient(#e9e9e9, transparent);
+    outline: none;
+}
 /* Media query start */
 
 @media all and (max-width: 1580px){

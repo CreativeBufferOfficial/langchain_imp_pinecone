@@ -1,0 +1,15 @@
+{
+  "builds": [
+    {
+      "src": "Kaven_langchain/wsgi.py",
+      "use": "@vercel/python",
+      "config": {"maxLamdaSize": "15mb", "runtime": "python 3.10.0"},
+    }
+    ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "Kaven_langchain/wsgi.py"
+    }
+  ]
+}

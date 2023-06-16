@@ -51,6 +51,9 @@ var csrfToken = document.getElementsByName("csrfmiddlewaretoken")[0].value;
 console.log(csrfToken)
         var data_by_user = $('#text_input').val();
         console.log(data_by_user)
+        var selectedValue = $('#user_files').val();
+        console.log(selectedValue)
+
         questionClone = $('.question_div_to_be_append').clone()
         questionClone.removeClass("d-none").removeClass("question_div_to_be_append")
         questionClone.find('p').text(data_by_user)
@@ -60,6 +63,7 @@ console.log(csrfToken)
         // Get the form data
         var formData = {
           prompt: $('#text_input').val(),
+          selected_file: $('#user_files').val()
         };
         $('#text_input').val('');
         $('.chat-avatar').removeClass('d-none')

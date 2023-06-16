@@ -17,7 +17,17 @@
 <body>
 {% load static %}
 {% csrf_token %}
- <h1 class="top_headline">Chat with your custom docs</h1>
+    <div class="col-12 header_area">
+        <div class="inside_data">
+        <h1 class="top_headline">Chat with your custom docs</h1>
+         <select name="user_files" id="user_files">
+            {% for file in file_names %}
+            <option value="{{file}}">{{file}}</option>
+            {% endfor %}
+
+        </select>
+            </div>
+    </div>
                         <div class="chat_area">
                             <!-- <div class="loading_area d-none">Doctor is thinking<div class="loader-img"><img src="/static/images/loading.gif" /></div></div> -->
                             <div class="chat_message">

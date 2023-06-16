@@ -22,71 +22,86 @@ PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
 PINECONE_ENV = os.getenv('PINECONE_ENV')
 
 
+
 aa= pinecone.init(
         api_key=PINECONE_API_KEY,
         environment=PINECONE_ENV
     )
+# pinecone.delete_index("cb-index")
+# index_name = "cb-index"
+# pinecone.create_index(index_name, dimension=1536, metric="cosine", pod_type="p1.x1")
+
+folder_path = 'Kaven_langchain/txt_data'
+def get_file_list():
+    file_list = []
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.txt'):
+            file_list.append(filename.replace('.txt', ''))
+    return file_list
+
+# file_list = get_file_list(folder_path)
+# print(len(file_list))
+
+
 
 class Newchat(TemplateView):
     template_name ='chat.html'
 
     def get(self,request):
-        return render(request, self.template_name)
+        file_list = get_file_list()
+        return render(request, self.template_name, {'file_names': file_list})
 
     def post(self,request):
         query = request.POST['prompt']
+        selected_file=request.POST['selected_file']
+        print(selected_file)
         embeddings = OpenAIEmbeddings()
-        docsearch = Pinecone.from_existing_index(index_name="test-index", embedding=embeddings)
-
-        llm = ChatOpenAI(temperature=0)
-        chain = load_qa_chain(llm, chain_type="stuff")
-
-        docs = docsearch.similarity_search(query, top_k=1, include_metadata=True, metadata={'Meta': 'Flex GT'})
-        if len(docs) > 0:
-            doc = docs[0]  # Get the first document
-            print(doc.page_content)
-            print(doc.metadata)
-            res = chain.run(input_documents=docs, question=query)
-
-            context = {
-                'response_by_AI': doc.page_content + str(doc.metadata),
-                # 'response_by_AI':res,
+        docsearch = Pinecone.from_existing_index("cb-index",
+                                                 embedding=OpenAIEmbeddings(),
+                                                 namespace=selected_file)
+        output = docsearch.similarity_search(query, k=1, return_metadata=True)
+        print(output)
+        page_contents = [o.page_content for o in output]
+        print(page_contents)
+        context = {
+            'response_by_AI': page_contents,
             }
-            print(context)
-            return JsonResponse(context)
+        print(context)
+        return JsonResponse(context)
 
 
 
 class StoreVectors(TemplateView):
 
     def get(self,request):
-        loader = DirectoryLoader('./txt_data/', glob="./*.txt", loader_cls=TextLoader)
-        data = loader.load()
-        data[0].metadata["Meta"] = "Back Support AC"
-        data[1].metadata["Meta"] = "Back Support HD"
-        data[2].metadata["Meta"] = "Flex CD"
-        data[3].metadata["Meta"] = "Flex GT"
-        data[4].metadata["Meta"] = "Flex Heat"
-        data[5].metadata["Meta"] = "Flex MLT"
-        data[6].metadata["Meta"] = "Flex NP"
-        data[7].metadata["Meta"] = "Flex SC"
-        data[8].metadata["Meta"] = "Knee & Ankle CR"
+        # pinecone.delete_index("cb-index")
+        # index_name = "cb-index"
+        # pinecone.create_index(index_name, dimension=1536, metric="cosine", pod_type="p1.x1")
+        # folder_path2 = './txt_data'
 
-        text_splitter = CharacterTextSplitter(chunk_size=800, chunk_overlap=100)
-        texts = text_splitter.split_documents(data)
+        loader = DirectoryLoader(folder_path, glob="./*.txt", loader_cls=TextLoader,loader_kwargs={'encoding': "utf-8"})
+        data = loader.load()
+        print(len(data))
 
         embeddings = OpenAIEmbeddings()
+        text_splitter = CharacterTextSplitter(chunk_size=800, chunk_overlap=50)
 
-        pinecone.init(
-            api_key='7c9b5573-82b0-49ed-acff-9f37fce7f803',
-            environment='us-west1-gcp-free'
-        )
-        metadatas = []
-        for text in texts:
-            metadatas.append({
-                "Meta": text.metadata["Meta"]
-            })
-        # print(metadatas)
-        Pinecone.from_texts([t.page_content for t in texts], embeddings, index_name="test-index",
-                            metadatas=metadatas)
+        texts = []
+        for i in data:
+            text = text_splitter.split_documents([i])
+            texts.append(text)
+        print(len(texts))
+
+        namespace_names = get_file_list()
+        data_length = len(data)
+
+        for i in range(data_length):
+            metadatas = [{"page": j} for j in range(len(texts[i]))]
+            Pinecone.from_texts(
+                [t.page_content for t in texts[i]],
+                embeddings,
+                index_name="cb-index",
+                metadatas=metadatas,
+                namespace=namespace_names[i],
+            )
         return JsonResponse({'success':'success'})
