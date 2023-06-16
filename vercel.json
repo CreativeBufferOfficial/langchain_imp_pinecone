@@ -1,15 +1,22 @@
 {
-  "builds": [
+    "builds": [{
+        "src": "Kaven_langchain/wsgi.py",
+        "use": "@vercel/python",
+        "config": { "maxLambdaSize": "15mb", "runtime": "python3.9" }
+    },
     {
-      "src": "Kaven_langchain/wsgi.py",
-      "use": "@vercel/python",
-      "config": {"maxLamdaSize": "15mb", "runtime": "python 3.10.0"},
-    }
-    ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "Kaven_langchain/wsgi.py"
-    }
-  ]
+        "src": "build_files.sh",
+        "use": "@vercel/static-build",
+        "config": { "distDir": "staticfiles_build" }
+    }],
+    "routes": [
+        {
+            "src": "/static/(.*)",
+            "dest": "/static/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "Kaven_langchain/wsgi.py"
+        }
+    ]
 }
